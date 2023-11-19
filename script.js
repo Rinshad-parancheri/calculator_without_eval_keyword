@@ -1,8 +1,7 @@
-class Display {
+class DisplayManaging {
     constructor() {
         this.displayElement = document.getElementById('display');
         this.resultDisplay = document.getElementById('resultDisplay');
-        console.log(this.resultDisplay);
     }
 
     clear() {
@@ -19,9 +18,9 @@ class Display {
         }
     }
 
-    updateOperator (e) {
-        if(this.displayElement.innerText !== '0'){
-            this.displayElement.innerText += ` ${e} `
+    updateOperator(e) {
+        if (this.displayElement.innerText !== '0') {
+            this.displayElement.innerText += `  ${e} `;
         }
     }
 
@@ -29,67 +28,70 @@ class Display {
         const text = this.displayElement.innerText;
         this.displayElement.innerText = text.slice(0, -1);
     }
+    updateResutlDisply(e) {
+        this.resultDisplay.innerText = ` = ${e}`;
+    }
 }
 
-
-class Calculator extends Display {
+class Calculator {
     constructor(operation) {
-        super();
         this.operattions = operation;
+        this.display = new DisplayManaging();
         this.firstNum = '';
         this.secondNum = '';
         this.operator = '';
+        this.operatorCount = 0;
     }
 
     handleClear() {
         this.firstNum = '';
         this.secondNum = '';
         this.operator = '';
-        this.clear();
+        this.display.clear();
     }
 
     handleDelete() {
-        this.deleteLastCharacter();
+        this.display.deleteLastCharacter();
     }
 
     handleNumber(number) {
-        this.update(number);
-
         if (this.operator === '') {
             this.firstNum += number;
-        } else if (this.operator !== ''){
+        } else {
             this.secondNum += number;
-            this.resultDisplay.innerText = this.operattions[this.operator](Number(this.firstNum),Number(this.secondNum));
-            this.firstNum = this.resultDisplay.innerText;
-            this.operator = '';
-            this.secondNum = ''; 
         }
+        this.display.update(number);
+    }
 
+    calculate() {
+        if (this.operator !== '' && this.secondNum !== '') {
+            let num1 = parseInt(this.firstNum);
+            let num2 = parseInt(this.secondNum);
+            let Currentoperator = this.operator;
+            let result = this.operattions[Currentoperator](num1, num2)
+            this.display.updateResutlDisply(result);
+            this.firstNum = result;
+            this.secondNum = '';
+        }
     }
 
     handleOperatorBtn(e) {
-        this.updateOperator(e)
-        switch (e) {
-            case '+':
-                this.operator = 'add';
-                break; ``
-            case '-':
-                this.operator = 'subtraction';
-                break;
-            case 'x':
-                this.operator = 'multiplication';
-                break;
-            case '÷':
-                this.operator = 'division';
-            break;
-        }
+        const operatorMapping = {
+            '+': 'add',
+            '-': 'subtraction',
+            'x': 'multiplication',
+            '÷': 'division'
+        };
+        const operatorName = operatorMapping[e]
+        this.operator = operatorName;
+        this.display.updateOperator(e)
+        this.calculate();
+    }
+
+    handleEqualBtn() {
+        this.calculate();
     }
 }
-
-
-
-
-
 
 class Operations {
     add(num1, num2) {
@@ -117,42 +119,18 @@ class CalculatorUI {
         this.operatorButtons = document.querySelectorAll('.operator');
         this.deleteButton = document.getElementById('deleteBtn');
         this.clearButton = document.getElementById('clearBtn');
+        this.equalButton = document.getElementById('equalsBtn');
 
         this.attachEventListeners();
     }
 
     attachEventListeners() {
-        this.NumberButtonClicks();
-        this.OperatorButtonClicks();
-        this.ClearButtonClick();
-        this.DeleteButtonClick();
-    }
-
-    NumberButtonClicks() {
-        this.numberButtons.forEach(btn => {
-            btn.onclick = (e) => this.calculator.handleNumber(e.target.innerText);
-        })
-    }
-
-    OperatorButtonClicks() {
-        this.operatorButtons.forEach(operatorBtn => {
-        operatorBtn.onclick = (e) = this.calculator.handleOperatorBtn(e.target);
-    })
-    
-}
-    ClearButtonClick() {
-        this.clearButton.addEventListener('click', () => {
-            this.calculator.handleClear();
-        });
-    }
-
-    DeleteButtonClick() {
-        this.deleteButton.addEventListener('click', () => {
-            this.calculator.handleDelete();
-        });
+        this.numberButtons.forEach(btn => btn.onclick = (e) => this.calculator.handleNumber(e.target.innerText));
+        this.operatorButtons.forEach(operatorBtn => operatorBtn.onclick = (e) => this.calculator.handleOperatorBtn(e.target.innerText));
+        this.equalButton.onclick = (e) => this.calculator.handleEqualBtn();
+        this.clearButton.onclick = (e) => this.calculator.handleClear();
+        this.deleteButton.onclick = (e) => this.calculator.handleDelete();
     }
 }
-
-
 const calculator = new Calculator(new Operations);
 const calculatorUI = new CalculatorUI(calculator);
